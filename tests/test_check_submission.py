@@ -185,6 +185,11 @@ class SubmissionTest(unittest.TestCase):
         for field in ("Description", "Source code", "Category", "Checks"):
             self.assertIn("**%s**" % field, found)
 
+    def test_firmware_is_optional(self):
+        report = run(body=form_body(**{"Firmware tested": "_No response_"}))
+        self.assertEqual(errors(report), [])
+        self.assertIn("| Tested on | not given |", cs.render(report, FW))
+
     def test_body_without_the_form(self):
         report = run(body="Here is my app, please add it.")
         self.assertEqual(len(errors(report)), 1)

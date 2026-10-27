@@ -148,8 +148,8 @@ def check_form(f, report):
         report.error("**Category**: one of %s." % ", ".join(CATEGORIES))
     if not one_line(f["description"], 10, 140):
         report.error("**Description**: one sentence, 10 to 140 characters (now %d)." % len(f["description"]))
-    if not one_line(f["firmware"], 1, 40):
-        report.error("**Firmware tested**: one line, 40 characters at most.")
+    if not one_line(f["firmware"], 0, 40):
+        report.error("**Firmware tested**: one line, 40 characters at most, or leave it empty.")
     if f["source"] and not re.fullmatch(r"https://[^\s<>|\"'`\\]{4,200}", f["source"]):
         report.error("**Source code**: an https:// link, or leave it empty.")
     if len(re.findall(r"^- \[[xX]\] ", f["checks"], re.M)) != CHECKBOXES:
@@ -415,7 +415,7 @@ def render(report, fw):
                 "| Code | %d / %d bytes |" % (app["code"], fw["code_max"]),
                 "| Assets | %d / %d bytes |" % (app["assets"], fw["asset_max"]),
                 "| Needs | API level %d, capabilities: %s |" % (app["api"], caps),
-                "| Tested on | %s |" % esc(f["firmware"]),
+                "| Tested on | %s |" % (esc(f["firmware"]) or "not given"),
                 "| Source | %s |" % source]
     if report.frame:
         out += ["", "### Screenshot as the catalog reads it", "", "```text", braille(report.frame), "```"]
