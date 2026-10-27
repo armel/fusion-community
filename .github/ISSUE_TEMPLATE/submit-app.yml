@@ -1,12 +1,12 @@
 name: Submit an app
-description: Propose an overlay app for the Community section of the UV Studio catalog.
+description: Propose an overlay app for the Community tab of UV Studio.
 title: "[App] "
 labels: ["app-submission"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing your app! The easiest way is UV Studio: **Apps > Catalog > Propose an app to the community** checks the app and prepares this submission for you.
+        Thanks for sharing your app! The easiest way is UV Studio: **Apps > Community > Propose an app** checks the app and prepares this submission for you.
 
         By hand, fill in the fields below: a bot checks the submission in about a minute and replies with a report. Edit this issue to fix anything it reports, the check runs again.
 
@@ -56,7 +56,7 @@ body:
     id: source
     attributes:
       label: Source code
-      description: Optional link to the source code (https://). Apps with a source link get an "open source" badge.
+      description: Optional link to the source code (https://). The app's card in UV Studio shows it.
       placeholder: https://github.com/you/your-app
   - type: textarea
     id: screenshot

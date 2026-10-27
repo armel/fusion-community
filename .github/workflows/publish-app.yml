@@ -1,9 +1,11 @@
-name: Publish app
+name: Publish or remove app
 
-# A maintainer's "approved" label on a submission issue publishes the app: the
-# submission is checked again, then the .app and its apps.json entry are
-# committed and the issue is closed. The issue only brings data (form fields,
-# the app and its screen), never code that runs here.
+# A maintainer's label on an issue changes the community catalog. "approved"
+# on a submission publishes the app: the submission is checked again, then the
+# .app and its apps.json entry are committed and the issue is closed. "removed"
+# on the issue of a published app deletes its entry and its folder, and the
+# issue says so. The issue only brings data (form fields, the app and its
+# screen), never code that runs here.
 on:
   issues:
     types: [labeled]
@@ -12,7 +14,7 @@ permissions:
   contents: write
   issues: write
 
-# One publication at a time: each one rewrites apps.json.
+# One change at a time: each one rewrites apps.json.
 concurrency:
   group: publish
   cancel-in-progress: false
@@ -47,5 +49,34 @@ jobs:
           echo "published=true" >> "$GITHUB_OUTPUT"
       - if: steps.push.outputs.published == 'true'
         run: python tools/publish_app.py announce --event "$GITHUB_EVENT_PATH"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  remove:
+    if: github.event.label.name == 'removed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The issue is read from the event file, never interpolated into the shell.
+      - run: python tools/publish_app.py remove --event "$GITHUB_EVENT_PATH" --message "$RUNNER_TEMP/message.txt" --entry "$RUNNER_TEMP/entry.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: push
+        name: Commit and push
+        run: |
+          if [ ! -f "$RUNNER_TEMP/message.txt" ]; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A apps.json apps
+          git commit --quiet -F "$RUNNER_TEMP/message.txt"
+          git pull --quiet --rebase origin main
+          git push --quiet origin HEAD:main
+          echo "removed=true" >> "$GITHUB_OUTPUT"
+      - if: steps.push.outputs.removed == 'true'
+        run: python tools/publish_app.py announce-removal --event "$GITHUB_EVENT_PATH" --entry "$RUNNER_TEMP/entry.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,13 +1,13 @@
 # UV Studio community apps
 
-Overlay apps for the F4HWN firmware (UV-K1 / UV-K5 V3), shared by their authors and listed in the **Community** section of the [UV Studio](https://armel.github.io/uvstudio/) catalog.
+Overlay apps for the F4HWN firmware (UV-K1 / UV-K5 V3), shared by their authors and listed in the **Community** tab of the [UV Studio](https://armel.github.io/uvstudio/) Apps view.
 
 > [!WARNING]
 > Community apps are not reviewed by F4HWN. An overlay app runs native code with full access to the radio, transmitter included. Install only apps whose author you trust, and transmit only where your licence allows it.
 
 ## Submit an app
 
-The easiest way is UV Studio: **Apps > Catalog > Propose an app to the community**. It checks your `.app`, captures its screen from the Live Viewer, shows the card as the catalog will draw it, then opens GitHub with the submission ready: you only click **Create**.
+The easiest way is UV Studio: **Apps > Community > Propose an app**. It checks your `.app`, captures its screen from the radio while the app runs (or reads a Live Viewer PNG), shows the card as UV Studio will draw it, then opens GitHub with the submission ready: you only click **Create**.
 
 By hand:
 
@@ -31,14 +31,14 @@ To update your app, submit the new version the same way: it replaces the publish
 
 - One app per submission.
 - The description is in English and is shown as written: official apps are translated, community apps are not.
-- You keep the rights to your app; submitting it allows its redistribution through UV Studio. Sharing the source code is encouraged: apps with a source link get an "open source" badge.
+- You keep the rights to your app; submitting it allows its redistribution through UV Studio. Sharing the source code is encouraged: the card of an app with a source link shows it.
 - A maintainer can refuse or remove an app at any time, for example if it misbehaves on the air.
 
 ## Maintainers
 
-- **Publish** an app: add the `approved` label to its submission once the check passes. The *Publish app* workflow checks it again, stores the `.app` under `apps/<id>/<version>/`, adds or updates its entry in `apps.json`, commits, then comments and closes the issue. A refusal (check failing, someone else's app id, version not newer) is explained in a comment and the label is taken off.
+- **Publish** an app: add the `approved` label to its submission once the check passes. The *Publish or remove app* workflow checks it again, stores the `.app` under `apps/<id>/<version>/`, adds or updates its entry in `apps.json`, commits, then comments and closes the issue. A refusal (check failing, someone else's app id, version not newer) is explained in a comment and the label is taken off.
 - **Refuse** a submission: close the issue with a comment.
-- **Remove** a published app: delete its entry from `apps.json` and its folder under `apps/`, in one commit. It leaves the catalog at once; radios that installed it keep it.
+- **Remove** a published app: add the `removed` label to the issue of its publication (or to any other submission of it by its author), even closed. The same workflow deletes its entry from `apps.json` and its folder under `apps/`, commits, then comments, takes the `published` label off and closes the issue if it is open; with nothing to remove, it says so and takes the label off. UV Studio stops listing the app within about 5 minutes (GitHub caches `apps.json`); radios that installed it keep it. Its id is free again: a new submission under that name is published only if you approve it.
 - `tools/firmware.json` holds what the current firmware accepts (ABI, API level, capabilities, sizes). Update it when the firmware's app API changes, together with the same limits in UV Studio's `js/app-submit.js`.
 - Keep blank issues enabled (`.github/ISSUE_TEMPLATE/config.yml`): UV Studio opens a blank issue prefilled with the submission.
 - Check a submission locally:

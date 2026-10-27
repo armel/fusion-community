@@ -25,8 +25,10 @@ def checked(version="1.0", name="Sky Watch", **fields):
     return cs.check(body, FW, frozenset({"tetris"}))
 
 
-def issue(number=3, login="f4xyz"):
-    return {"number": number, "user": {"login": login}}
+def issue(number=3, login="f4xyz", name=None):
+    """A submission issue; with `name`, its form body names that app."""
+    return {"number": number, "user": {"login": login},
+            "body": form_body(**{"App name": name}) if name else ""}
 
 
 class PublishTest(unittest.TestCase):
@@ -89,15 +91,63 @@ class PublishTest(unittest.TestCase):
         self.assertLess(pa.version_key("v0.7"), pa.version_key("0.7.1"))
 
 
+class RemoveTest(unittest.TestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root)
+        pa.publish(checked("1.0"), issue(3), NOW, self.root)
+        pa.publish(checked(name="Zed Scope"), issue(4, "f4abc"), NOW, self.root)
+
+    def manifest(self):
+        with open(os.path.join(self.root, pa.MANIFEST)) as f:
+            return json.load(f)
+
+    def test_removal_from_its_publication(self):
+        message, entry = pa.remove(issue(3), "2026-10-28T08:00:00Z", self.root)
+        self.assertEqual(message, "Remove Sky Watch 1.0 (#3)")
+        self.assertEqual((entry["id"], entry["version"]), ("skywatch", "1.0"))
+        manifest = self.manifest()
+        self.assertEqual([e["id"] for e in manifest["apps"]], ["zedscope"])
+        self.assertEqual(manifest["updated"], "2026-10-28T08:00:00Z")
+        self.assertFalse(os.path.exists(os.path.join(self.root, "apps", "skywatch")))
+        self.assertTrue(os.path.exists(os.path.join(self.root, "apps/zedscope/1.0/ZedScope.app")))
+
+    def test_removal_from_an_older_submission_of_its_owner(self):
+        pa.publish(checked("1.1"), issue(7), NOW, self.root)
+        message, entry = pa.remove(issue(3, "F4XYZ", "Sky Watch"), NOW, self.root)
+        self.assertEqual((message, entry["issue"]), ("Remove Sky Watch 1.1 (#3)", 7))
+        self.assertEqual([e["id"] for e in self.manifest()["apps"]], ["zedscope"])
+
+    def test_refusals(self):
+        cases = [
+            ("not published", issue(9)),
+            ("someone else's submission of the name", issue(9, "someone", "Sky Watch")),
+            ("a name nobody published", issue(9, "f4xyz", "Moon Watch")),
+        ]
+        for case, by in cases:
+            with self.subTest(case):
+                with self.assertRaisesRegex(pa.PublishError, "no app of the community catalog comes from this issue"):
+                    pa.remove(by, NOW, self.root)
+        manifest = self.manifest()
+        manifest["apps"][0]["id"] = "../tools"
+        with open(os.path.join(self.root, pa.MANIFEST), "w") as f:
+            json.dump(manifest, f)
+        with self.assertRaisesRegex(pa.PublishError, "is not a folder name"):
+            pa.remove(issue(3), NOW, self.root)
+        self.assertEqual(len(self.manifest()["apps"]), 2)
+
+
 class WorkflowTest(unittest.TestCase):
     def test_publication_starts_on_the_approved_label_only(self):
         with open(os.path.join(ROOT, ".github", "workflows", "publish-app.yml")) as f:
             workflow = f.read()
         self.assertIn("types: [labeled]", workflow)
         self.assertIn("github.event.label.name == 'approved'", workflow)
+        self.assertIn("github.event.label.name == 'removed'", workflow)
         self.assertIn("contents: write", workflow)
         # the steps read the issue from the event file, never from an expression
-        self.assertNotIn("github.event.issue", workflow.split("steps:")[1])
+        for steps in workflow.split("steps:")[1:]:
+            self.assertNotIn("github.event.issue", steps.split("\n  remove:")[0])
         with open(os.path.join(ROOT, pa.MANIFEST)) as f:
             self.assertEqual(json.load(f)["format"], 1)
 
