@@ -1,4 +1,4 @@
-# UV Studio community apps
+# Fusion community apps
 
 Overlay apps for the F4HWN firmware (UV-K1 / UV-K5 V3), shared by their authors and listed in the **Community** tab of the [UV Studio](https://armel.github.io/uvstudio/) Apps view.
 
@@ -14,7 +14,7 @@ By hand:
 1. Build your `.app` against the current `app_api.h` of the [firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom) and test it on your radio.
 2. While it runs, open the UV Studio Live Viewer and press **Space** to save a screenshot (PNG).
 3. Put the `.app` in a `.zip`: GitHub does not accept `.app` attachments.
-4. [Open a submission](https://github.com/armel/uvstudio-community/issues/new?template=submit-app.yml) and fill in the form: name, author, category, a one-sentence description, the screenshot and the zip.
+4. [Open a submission](https://github.com/armel/fusion-community/issues/new?template=submit-app.yml) and fill in the form: name, author, category, a one-sentence description, the screenshot and the zip.
 
 A bot checks the submission within a minute or two and replies with a report. Edit the issue to fix what it reports: the check runs again after each edit. Once the check passes, a maintainer reviews the app; once published, it is listed in [`apps.json`](apps.json), which UV Studio reads, and the issue is closed.
 

@@ -35,6 +35,7 @@ import check_submission as cs
 
 ROOT = os.path.dirname(cs.HERE)
 MANIFEST = "apps.json"
+# Named after the repository's first name, kept like check_submission.MARKER.
 MARKER = "<!-- uvstudio-community-publish -->"
 MAINTAINERS = ("admin", "maintain", "write")
 APPROVED = "approved"

@@ -24,9 +24,11 @@ import zipfile
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Named after the repository's first name, kept: the bot finds its report
+# on existing issues by it.
 MARKER = "<!-- uvstudio-community-check -->"
 BOT = "github-actions[bot]"
-USER_AGENT = "uvstudio-community-check"
+USER_AGENT = "fusion-community-check"
 
 # Issue form labels (.github/ISSUE_TEMPLATE/submit-app.yml) -> field keys.
 FIELDS = {
