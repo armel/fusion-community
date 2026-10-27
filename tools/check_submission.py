@@ -78,6 +78,7 @@ class Report:
     def __init__(self):
         self.lines = []     # (mark, Markdown text)
         self.fields = None  # form fields once the body follows the form
+        self.binary = None  # the .app bytes once extracted
         self.app = None     # header facts once the binary is read
         self.frame = None   # 1024 LCD bytes once the screenshot is decoded
 
@@ -363,7 +364,8 @@ def check(body, fw, official, files=None):
             data = payload(f["binary"], "app", APP_FILE_MAX)
         if data is None:
             data = attachment(f["binary"], BINARY_MAX)
-        report.app = check_app(extract_app(data), fw, report)
+        report.binary = extract_app(data)
+        report.app = check_app(report.binary, fw, report)
     except CheckError as e:
         report.error("**App binary**: %s" % e)
     app = report.app

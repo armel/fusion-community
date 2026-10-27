@@ -1,0 +1,51 @@
+name: Publish app
+
+# A maintainer's "approved" label on a submission issue publishes the app: the
+# submission is checked again, then the .app and its apps.json entry are
+# committed and the issue is closed. The issue only brings data (form fields,
+# the app and its screen), never code that runs here.
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+# One publication at a time: each one rewrites apps.json.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.label.name == 'approved' && github.event.issue.state == 'open' &&
+      contains(github.event.issue.body, '### App binary')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --quiet -r tools/requirements.txt
+      # The issue is read from the event file, never interpolated into the shell.
+      - run: python tools/publish_app.py prepare --event "$GITHUB_EVENT_PATH" --message "$RUNNER_TEMP/message.txt"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: push
+        name: Commit and push
+        run: |
+          if [ ! -f "$RUNNER_TEMP/message.txt" ]; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A apps.json apps
+          git commit --quiet -F "$RUNNER_TEMP/message.txt"
+          git pull --quiet --rebase origin main
+          git push --quiet origin HEAD:main
+          echo "published=true" >> "$GITHUB_OUTPUT"
+      - if: steps.push.outputs.published == 'true'
+        run: python tools/publish_app.py announce --event "$GITHUB_EVENT_PATH"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -16,24 +16,29 @@ By hand:
 3. Put the `.app` in a `.zip`: GitHub does not accept `.app` attachments.
 4. [Open a submission](https://github.com/armel/uvstudio-community/issues/new?template=submit-app.yml) and fill in the form: name, author, category, a one-sentence description, the screenshot and the zip.
 
-A bot checks the submission within a minute or two and replies with a report. Edit the issue to fix what it reports: the check runs again after each edit. Once the check passes, a maintainer reviews the app.
+A bot checks the submission within a minute or two and replies with a report. Edit the issue to fix what it reports: the check runs again after each edit. Once the check passes, a maintainer reviews the app; once published, it is listed in [`apps.json`](apps.json), which UV Studio reads, and the issue is closed.
+
+To update your app, submit the new version the same way: it replaces the published one when it comes from the same GitHub account with a higher version number.
 
 ## What the check looks at
 
-- **The form**: every field filled in, within its length, and the three boxes ticked.
+- **The form**: the required fields filled in, within their lengths, and the three boxes ticked.
 - **The binary**: the zip holds one `.app` that passes the checks of the radio's loader: FAP1 header, ABI, API level, capabilities, link address, code up to 4096 bytes, assets up to 3840 bytes, CRCs.
 - **The name**: the one in the app header, and not the name of an official app.
 - **The screenshot**: a Live Viewer screen it can read back as 128 × 64 pixels. The report shows it as text, the way the catalog will draw it.
 
 ## Rules
 
-- One app per submission. To update an app, submit the new version the same way, from the same GitHub account.
+- One app per submission.
 - The description is in English and is shown as written: official apps are translated, community apps are not.
 - You keep the rights to your app; submitting it allows its redistribution through UV Studio. Sharing the source code is encouraged: apps with a source link get an "open source" badge.
 - A maintainer can refuse or remove an app at any time, for example if it misbehaves on the air.
 
 ## Maintainers
 
+- **Publish** an app: add the `approved` label to its submission once the check passes. The *Publish app* workflow checks it again, stores the `.app` under `apps/<id>/<version>/`, adds or updates its entry in `apps.json`, commits, then comments and closes the issue. A refusal (check failing, someone else's app id, version not newer) is explained in a comment and the label is taken off.
+- **Refuse** a submission: close the issue with a comment.
+- **Remove** a published app: delete its entry from `apps.json` and its folder under `apps/`, in one commit. It leaves the catalog at once; radios that installed it keep it.
 - `tools/firmware.json` holds what the current firmware accepts (ABI, API level, capabilities, sizes). Update it when the firmware's app API changes, together with the same limits in UV Studio's `js/app-submit.js`.
 - Keep blank issues enabled (`.github/ISSUE_TEMPLATE/config.yml`): UV Studio opens a blank issue prefilled with the submission.
 - Check a submission locally:
