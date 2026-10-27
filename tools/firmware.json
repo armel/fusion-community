@@ -1,0 +1,17 @@
+{
+  "comment": "What the current F4HWN firmware (Fusion edition) accepts, from App/apps/app_api.h and app_overlay.h of the firmware repository. Update on an ABI, API level or capability change.",
+  "abi_major": 1,
+  "api_level": 4,
+  "link_vma": "0x20000280",
+  "code_max": 4096,
+  "asset_max": 3840,
+  "caps": {
+    "FM": 1,
+    "SYSINFO": 8,
+    "BEAM2": 16,
+    "CFG_PROXY": 32,
+    "SERIAL": 64
+  },
+  "official_repo": "armel/uv-k1-k5v3-firmware-custom",
+  "official_apps": "archive/apps"
+}

@@ -1,0 +1,84 @@
+name: Submit an app
+description: Propose an overlay app for the Community section of the UV Studio catalog.
+title: "[App] "
+labels: ["app-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your app! Fill in the fields below: a bot checks the submission in about a minute and replies with a report. Edit this issue to fix anything it reports, the check runs again.
+
+        Community apps appear in UV Studio under **Community**, with your name. They are not reviewed by F4HWN, and users are warned before installing one.
+  - type: input
+    id: name
+    attributes:
+      label: App name
+      description: The name the radio shows, as set in the app header (16 characters at most).
+      placeholder: Sky Watch
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author
+      description: Your nickname or callsign, shown on the card (24 characters at most).
+      placeholder: F4XYZ
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Radio
+        - Tools
+        - Games
+    validations:
+      required: true
+  - type: input
+    id: description
+    attributes:
+      label: Description
+      description: One sentence in English, 140 characters at most, like the official cards.
+      placeholder: Track satellite passes and show the next one.
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware tested
+      description: The F4HWN firmware version you tested the app on.
+      placeholder: v7.0.0 Fusion
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source code
+      description: Optional link to the source code (https://). Apps with a source link get an "open source" badge.
+      placeholder: https://github.com/you/your-app
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drop one PNG saved by the UV Studio Live Viewer (Space key) while the app runs. Any pixel size, LCD effect on or off. Not a photo of the radio.
+    validations:
+      required: true
+  - type: textarea
+    id: binary
+    attributes:
+      label: App binary
+      description: Drop your .app file inside a .zip (GitHub does not accept .app attachments). One app per submission.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I tested this app on my radio.
+          required: true
+        - label: I wrote this app or have the right to distribute it, and I agree to its redistribution through UV Studio.
+          required: true
+        - label: I understand that the app can be removed from the catalog at any time.
+          required: true

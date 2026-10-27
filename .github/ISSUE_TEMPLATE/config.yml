@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: UV Studio
+    url: https://armel.github.io/uvstudio/
+    about: Flash the radio and install the apps of the catalog.
+  - name: Firmware issues
+    url: https://github.com/armel/uv-k1-k5v3-firmware-custom/issues
+    about: Bugs and requests about the F4HWN firmware or its official apps.
