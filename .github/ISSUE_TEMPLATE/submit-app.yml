@@ -6,7 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing your app! Fill in the fields below: a bot checks the submission in about a minute and replies with a report. Edit this issue to fix anything it reports, the check runs again.
+        Thanks for sharing your app! The easiest way is UV Studio: **Apps > Catalog > Propose an app to the community** checks the app and prepares this submission for you.
+
+        By hand, fill in the fields below: a bot checks the submission in about a minute and replies with a report. Edit this issue to fix anything it reports, the check runs again.
 
         Community apps appear in UV Studio under **Community**, with your name. They are not reviewed by F4HWN, and users are warned before installing one.
   - type: input
@@ -33,6 +35,7 @@ body:
         - Radio
         - Tools
         - Games
+        - Demos
     validations:
       required: true
   - type: input

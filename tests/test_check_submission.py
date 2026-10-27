@@ -108,6 +108,50 @@ def errors(report):
     return [text for mark, text in report.lines if mark == "error"]
 
 
+def uvstudio_payload(kind, data):
+    """What UV Studio's submission panel writes: raw deflate, base64url, no padding."""
+    deflater = zlib.compressobj(9, zlib.DEFLATED, -15)
+    packed = deflater.compress(data) + deflater.flush()
+    return "```text\nuvstudio-%s:1:%s\n```" % (kind, cs.base64.urlsafe_b64encode(packed).decode().rstrip("="))
+
+
+class PayloadTest(unittest.TestCase):
+    """Submissions prepared by UV Studio carry the app and the screen in their text."""
+
+    def body(self, app=None, screen=None):
+        return form_body(**{"App binary": uvstudio_payload("app", app or make_app()),
+                            "Screenshot": uvstudio_payload("screen", screen or sample_frame())})
+
+    def test_uvstudio_submission_needs_no_download(self):
+        report = cs.check(self.body(), FW, frozenset())
+        self.assertEqual(errors(report), [])
+        self.assertEqual(report.app["id"], "skywatch")
+        self.assertEqual(report.frame, sample_frame())
+        self.assertIn("sent by UV Studio", cs.render(report, FW))
+
+    def test_damaged_payloads(self):
+        body = form_body(**{"App binary": "uvstudio-app:1:AAAA", "Screenshot": "uvstudio-screen:1:%%%"})
+        found = " ".join(errors(cs.check(body, FW, frozenset())))
+        self.assertIn("UV Studio payload is damaged", found)
+        self.assertIn("drop the file", found)   # "%%%" is no payload: falls back to an attachment
+
+    def test_blank_or_short_screen(self):
+        for screen in (bytes(1024), b"\x01" * 512):
+            with self.subTest(len(screen)):
+                body = form_body(**{"App binary": uvstudio_payload("app", make_app()),
+                                    "Screenshot": uvstudio_payload("screen", screen)})
+                self.assertTrue(any("blank or not 128 x 64" in e for e in errors(cs.check(body, FW, frozenset()))))
+
+    def test_payload_size_limit(self):
+        with self.assertRaisesRegex(cs.CheckError, "too large"):
+            cs.payload(uvstudio_payload("app", b"\0" * 20000), "app", cs.APP_FILE_MAX)
+
+    def test_one_payload_per_field(self):
+        twice = uvstudio_payload("app", make_app()) * 2
+        with self.assertRaisesRegex(cs.CheckError, "found 2"):
+            cs.payload(twice, "app", cs.APP_FILE_MAX)
+
+
 @unittest.skipUnless(Image, "Pillow is needed for the screenshots")
 class SubmissionTest(unittest.TestCase):
     def test_valid_submission_is_ready_for_review(self):

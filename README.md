@@ -7,6 +7,10 @@ Overlay apps for the F4HWN firmware (UV-K1 / UV-K5 V3), shared by their authors 
 
 ## Submit an app
 
+The easiest way is UV Studio: **Apps > Catalog > Propose an app to the community**. It checks your `.app`, captures its screen from the Live Viewer, shows the card as the catalog will draw it, then opens GitHub with the submission ready: you only click **Create**.
+
+By hand:
+
 1. Build your `.app` against the current `app_api.h` of the [firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom) and test it on your radio.
 2. While it runs, open the UV Studio Live Viewer and press **Space** to save a screenshot (PNG).
 3. Put the `.app` in a `.zip`: GitHub does not accept `.app` attachments.
@@ -30,7 +34,8 @@ A bot checks the submission within a minute or two and replies with a report. Ed
 
 ## Maintainers
 
-- `tools/firmware.json` holds what the current firmware accepts (ABI, API level, capabilities, sizes). Update it when the firmware's app API changes.
+- `tools/firmware.json` holds what the current firmware accepts (ABI, API level, capabilities, sizes). Update it when the firmware's app API changes, together with the same limits in UV Studio's `js/app-submit.js`.
+- Keep blank issues enabled (`.github/ISSUE_TEMPLATE/config.yml`): UV Studio opens a blank issue prefilled with the submission.
 - Check a submission locally:
 
   ```sh

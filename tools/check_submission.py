@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Check an app submission of the UV Studio community catalog.
 
-In GitHub Actions (--event): reads the submission issue, downloads its two
+In GitHub Actions (--event): reads the submission issue, takes the .app and
+the screen from the UV Studio payloads of its text or downloads its two
 attachments, checks the .app the way the radio's loader does and decodes the
 Live Viewer screenshot, then posts or updates one report comment, labels the
 issue and names it after the app.
@@ -10,6 +11,7 @@ Locally: check_submission.py --body issue.md [--app App.zip] [--screenshot shot.
 prints the report; --app and --screenshot replace the attachment downloads.
 """
 import argparse
+import base64
 import io
 import json
 import os
@@ -38,7 +40,7 @@ FIELDS = {
     "App binary": "binary",
     "Checks": "checks",
 }
-CATEGORIES = ("Radio", "Tools", "Games")
+CATEGORIES = ("Radio", "Tools", "Games", "Demos")
 CHECKBOXES = 3
 
 APP_MAGIC = 0x31504146   # "FAP1"
@@ -57,6 +59,9 @@ ATTACHMENT = re.compile(
     r"https://(?:github\.com/user-attachments/(?:assets|files)/"
     r"|github\.com/[\w.-]+/[\w.-]+/files/"
     r"|user-images\.githubusercontent\.com/)[\w./%-]+")
+# What UV Studio's "Propose an app" panel writes in a field instead of an
+# attachment: the raw-deflated .app or 1024 LCD bytes, in base64url.
+PAYLOAD = re.compile(r"\buvstudio-(app|screen):1:([A-Za-z0-9_-]+)")
 
 LABELS = {
     "app-submission": ("1f6feb", "App submitted through the form"),
@@ -174,6 +179,23 @@ def attachment(text, limit):
     if len(urls) > 1:
         raise CheckError("one file only (found %d)." % len(urls))
     return download(urls[0], limit)
+
+
+def payload(text, kind, limit):
+    """The bytes of the UV Studio payload of a form field, None without one."""
+    found = [m.group(2) for m in PAYLOAD.finditer(text) if m.group(1) == kind]
+    if not found:
+        return None
+    if len(found) > 1:
+        raise CheckError("one UV Studio payload only (found %d)." % len(found))
+    try:
+        inflater = zlib.decompressobj(-15)
+        data = inflater.decompress(base64.urlsafe_b64decode(found[0] + "=" * (-len(found[0]) % 4)), limit + 1)
+    except (ValueError, zlib.error) as e:
+        raise CheckError("the UV Studio payload is damaged (%s)." % esc(e))
+    if len(data) > limit or not inflater.eof:
+        raise CheckError("the UV Studio payload is damaged or too large.")
+    return data
 
 
 def extract_app(data):
@@ -336,7 +358,11 @@ def check(body, fw, official, files=None):
     report.fields = f
 
     try:
-        data = files.get("binary") or attachment(f["binary"], BINARY_MAX)
+        data = files.get("binary")
+        if data is None:
+            data = payload(f["binary"], "app", APP_FILE_MAX)
+        if data is None:
+            data = attachment(f["binary"], BINARY_MAX)
         report.app = check_app(extract_app(data), fw, report)
     except CheckError as e:
         report.error("**App binary**: %s" % e)
@@ -356,8 +382,15 @@ def check(body, fw, official, files=None):
             report.ok("No official app uses the catalog id `%s`" % app["id"])
 
     try:
-        report.frame = decode_screenshot(files.get("screenshot") or attachment(f["screenshot"], SHOT_MAX))
-        report.ok("Screenshot: decoded as a 128 x 64 Live Viewer screen (preview below)")
+        frame = None if "screenshot" in files else payload(f["screenshot"], "screen", 1024)
+        if frame is None:
+            report.frame = decode_screenshot(files.get("screenshot") or attachment(f["screenshot"], SHOT_MAX))
+            report.ok("Screenshot: decoded as a 128 x 64 Live Viewer screen (preview below)")
+        elif len(frame) != 1024 or frame in (bytes(1024), b"\xff" * 1024):
+            raise CheckError("the UV Studio screen is blank or not 128 x 64 pixels.")
+        else:
+            report.frame = frame
+            report.ok("Screenshot: 128 x 64 screen sent by UV Studio (preview below)")
     except CheckError as e:
         report.error("**Screenshot**: %s" % e)
     return report
