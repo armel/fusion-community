@@ -145,6 +145,8 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("github.event.label.name == 'approved'", workflow)
         self.assertIn("github.event.label.name == 'removed'", workflow)
         self.assertIn("contents: write", workflow)
+        self.assertIn("queue: max", workflow)
+        self.assertEqual(workflow.count("ref: main"), 2)
         # the steps read the issue from the event file, never from an expression
         for steps in workflow.split("steps:")[1:]:
             self.assertNotIn("github.event.issue", steps.split("\n  remove:")[0])
